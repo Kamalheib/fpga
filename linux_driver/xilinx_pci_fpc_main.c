@@ -40,13 +40,13 @@ static int debug = 1;      /* 1 normal messages, 0 quiet .. 7 verbose. */
 #include "xilinx_pci_fpc.h"
 #include "../common/xilinx_fpc_constants.h"
 
-#include <asm/io.h>
-#include <asm/irq.h>
-#include <asm/system.h>
-#include <asm/uaccess.h>
+#include <linux/io.h>
+#include <linux/irq.h>
+#include <asm/switch_to.h>
+#include <linux/uaccess.h>
 
 /* These identify the driver base version and may not be removed. */
-static const char version[] __devinitconst =
+static const char version[] =
   KERN_INFO DRV_NAME ".c:v" DRV_VERSION " " DRV_RELDATE
   " Eldridge Mount (emount@rochester.rr.com)\n";
 
@@ -105,7 +105,7 @@ enum fpc_pci_cards {
 };
 
 /* Device table to register the driver for */
-static DEFINE_PCI_DEVICE_TABLE(fpc_pci_tbl) = {
+static const struct pci_device_id fpc_pci_tbl[] = {
   { XILINX_VENDOR_ID, FPC_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CARD_XILINX_REFERENCE},
   { 0, }
 };
@@ -274,7 +274,7 @@ static irqreturn_t xilinx_pci_fpc_isr(int irq, void *dev_id) {
 }
 
 /* Probe function */
-static int __devinit fpc_pci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent) {
+static int fpc_pci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent) {
 #ifndef MODULE
   static int printed_version  = 0;
 #endif
@@ -300,7 +300,7 @@ static int __devinit fpc_pci_init_one(struct pci_dev *pdev, const struct pci_dev
   fpc_dev->name[NAME_MAX_SIZE - 1] = '\0';
 
   /* Disable message-signaled interrupts and then enable the device */
-  pci_msi_off(pdev);
+  //pci_msi_off(pdev);
   ret_value = pci_enable_device(pdev);
   if(ret_value) {
     dev_err(&pdev->dev, "failed to enable device\n");
@@ -421,7 +421,7 @@ static int fpc_pci_close(struct net_device *dev)
 #endif // NOTYET
 
 /* Release function */
-static void __devexit fpc_pci_remove_one (struct pci_dev *pdev)
+static void fpc_pci_remove_one (struct pci_dev *pdev)
 {
   struct pci_fpc_device *fpc_dev = pci_get_drvdata(pdev);
   uint32_t dev_index;
@@ -486,7 +486,7 @@ static int fpc_pci_resume (struct pci_dev *pdev)
 static struct pci_driver xilinx_fpc_driver = {
   .name     = DRV_NAME,
   .probe    = fpc_pci_init_one,
-  .remove   = __devexit_p(fpc_pci_remove_one),
+  .remove   = fpc_pci_remove_one,
   .id_table = fpc_pci_tbl,
 #ifdef CONFIG_PM
   .suspend  = fpc_pci_suspend,
