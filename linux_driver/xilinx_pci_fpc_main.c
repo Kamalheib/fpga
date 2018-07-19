@@ -94,7 +94,7 @@ static struct {
 #define RTL_R32(reg)         ((unsigned long) readl (fpc_dev->iobase_virt + (reg)))
 
 /* Register offsets */
-#define ICAP_BASE  (0x00)
+#define ICAP_BASE  (0xB000)
 
 /* Enumeration providing a natural ordering to the different cards we support
  * with this driver.  This is subsequently used to access card-specific driver
